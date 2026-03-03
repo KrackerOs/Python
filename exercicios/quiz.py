@@ -1,4 +1,4 @@
-dia = int(input('Digite o dia: '))
-mes = input('Digite o mês: ')
-ano = int(input('Digite o ano: '))
-print('Nossa atividade está sendo realizada no dia {}, do mês {} e do ano {}'.format(dia, mes, ano))
+num1 = int(input('Digite o primeiro numero: '))
+num2 = int(input('Digite o segundo numero: '))
+soma = num1 + num2
+print('A soma de {} + {}, é igual a {}'.format(num1, num2, soma))
