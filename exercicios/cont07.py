@@ -20,4 +20,4 @@ print(frase.strip())#O strip tira o espaço em branco do inicio e do final
 print(frase.rstrip())#O rstrip tira o espaço em branco da direita
 print(frase.lstrip())#O lstrip tira o espaço em branco da esquerda
 print(frase.split())
-print('-'.join(frase))#No join, você une o simbolo digitado em cada parte do split
+print('*'.join(frase))#No join, você une o simbolo digitado em cada parte do split
