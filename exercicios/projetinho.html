@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UniVoto Social</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green1:#2E7D32;--green2:#43A047;--green3:#66BB6A;--green4:#A5D6A7;--green5:#E8F5E9;
+  --blue1:#1565C0;--blue2:#1976D2;--blue3:#42A5F5;--blue4:#90CAF9;--blue5:#E3F2FD;
+  --sun:#F9A825;--sun2:#FFD54F;
+  --dark:#0D1B0E;--dark2:#1A2E1B;--dark3:#243525;
+  --text:#1B2E1C;--muted:#5A7A5C;--border:#C8E6C9;
+  --card:#fff;--bg:#F1F8E9;
+  --grad:linear-gradient(135deg,#1565C0,#2E7D32);
+  --grad2:linear-gradient(135deg,#43A047,#1976D2);
+  --r:16px;--sh:0 2px 20px rgba(46,125,50,.10);
+}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* ── TELA DE LOGIN ── */
+#login-screen{
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;padding:20px;
+  background:linear-gradient(160deg,#0D1B0E 0%,#1A3520 40%,#0D2240 100%);
+  position:fixed;inset:0;z-index:1000;
+  transition:opacity .5s ease,visibility .5s ease;
+}
+#login-screen.hide{opacity:0;visibility:hidden;pointer-events:none}
+.login-box{
+  background:rgba(255,255,255,.06);
+  backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:24px;
+  padding:40px 36px;
+  width:100%;max-width:420px;
+  text-align:center;
+  box-shadow:0 24px 60px rgba(0,0,0,.4);
+  animation:popIn .4s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes popIn{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+
+.login-logo{margin-bottom:20px}
+.login-logo svg{width:90px;height:90px}
+.login-title{font-family:'Fredoka One',cursive;font-size:32px;color:#fff;letter-spacing:.5px;margin-bottom:4px}
+.login-sub{color:rgba(255,255,255,.55);font-size:14px;margin-bottom:28px;font-weight:600}
+
+.role-tabs{display:flex;gap:8px;background:rgba(255,255,255,.08);border-radius:12px;padding:5px;margin-bottom:24px}
+.role-tab{flex:1;padding:9px;border:none;background:none;color:rgba(255,255,255,.55);font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border-radius:9px;transition:all .2s}
+.role-tab.on{background:rgba(255,255,255,.18);color:#fff}
+
+.login-input{
+  width:100%;background:rgba(255,255,255,.10);
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:12px;padding:12px 16px;
+  font-family:'Nunito',sans-serif;font-size:15px;color:#fff;
+  outline:none;margin-bottom:12px;transition:border-color .2s;
+}
+.login-input::placeholder{color:rgba(255,255,255,.35)}
+.login-input:focus{border-color:var(--green3)}
+
+.login-btn{
+  width:100%;background:var(--grad2);color:#fff;border:none;
+  border-radius:12px;padding:13px;font-family:'Fredoka One',cursive;
+  font-size:17px;cursor:pointer;transition:all .2s;letter-spacing:.4px;
+  box-shadow:0 4px 20px rgba(67,160,71,.35);margin-top:4px;
+}
+.login-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(67,160,71,.45)}
+.login-err{font-size:12px;color:#FF8A80;font-weight:700;margin-bottom:10px;display:none;background:rgba(255,82,82,.15);padding:6px 12px;border-radius:8px}
+
+/* ── APP SHELL ── */
+#app{display:none;min-height:100vh;flex-direction:column}
+#app.visible{display:flex}
+
+/* ── NAVBAR ── */
+.navbar{
+  background:linear-gradient(135deg,#0D2240 0%,#0D1B0E 60%,#1A3520 100%);
+  padding:0 20px;height:60px;display:flex;align-items:center;
+  position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 20px rgba(0,0,0,.3);
+  gap:16px;
+}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
+.nav-logo svg{width:36px;height:36px}
+.nav-brand{font-family:'Fredoka One',cursive;font-size:22px;color:#fff;letter-spacing:.3px}
+.nav-search{
+  flex:1;max-width:340px;background:rgba(255,255,255,.10);
+  border:1px solid rgba(255,255,255,.12);border-radius:20px;
+  padding:7px 16px;font-family:'Nunito',sans-serif;font-size:13px;
+  color:#fff;outline:none;
+}
+.nav-search::placeholder{color:rgba(255,255,255,.35)}
+.nav-right{display:flex;align-items:center;gap:12px;margin-left:auto}
+.nav-badge{
+  background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.15);
+  color:rgba(255,255,255,.8);border-radius:20px;padding:6px 14px;
+  font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;gap:5px;
+}
+.nav-badge:hover{background:rgba(255,255,255,.18)}
+.nav-badge.admin{background:rgba(249,168,37,.15);border-color:rgba(249,168,37,.3);color:var(--sun2)}
+.nav-avatar{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--grad2);display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:800;color:#fff;cursor:pointer;
+  border:2px solid rgba(255,255,255,.2);flex-shrink:0;
+}
+.logout-mini{
+  background:rgba(255,82,82,.15);border:1px solid rgba(255,82,82,.25);
+  color:#FF8A80;border-radius:20px;padding:6px 12px;
+  font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;
+}
+.logout-mini:hover{background:rgba(255,82,82,.25)}
+
+/* ── LAYOUT ── */
+.main-layout{display:grid;grid-template-columns:260px 1fr 280px;gap:20px;max-width:1200px;margin:0 auto;padding:24px 16px;align-items:start}
+@media(max-width:1000px){.main-layout{grid-template-columns:220px 1fr;}}
+@media(max-width:720px){.main-layout{grid-template-columns:1fr;padding-bottom:80px;}}
+@media(max-width:720px){.sidebar-left{display:none!important}}
+
+/* ── SIDEBAR ESQUERDA ── */
+.sidebar-left{position:sticky;top:76px}
+@media(min-width:721px){.sidebar-left{display:block}}
+.menu-card{background:var(--card);border-radius:var(--r);border:1.5px solid var(--border);box-shadow:var(--sh);overflow:hidden;margin-bottom:14px}
+.menu-item{
+  display:flex;align-items:center;gap:12px;padding:13px 16px;
+  color:var(--text);font-weight:700;font-size:14px;cursor:pointer;
+  transition:all .18s;border-bottom:1px solid var(--green5);text-decoration:none;
+  border:none;background:none;width:100%;text-align:left;
+}
+.menu-item:last-child{border-bottom:none}
+.menu-item:hover{background:var(--green5);color:var(--green1)}
+.menu-item.active{background:var(--green5);color:var(--green1);border-left:3px solid var(--green2)}
+.menu-icon{font-size:18px;width:22px;text-align:center}
+.menu-label{flex:1}
+.menu-count{background:var(--green2);color:#fff;font-size:10px;font-weight:900;padding:2px 7px;border-radius:20px}
+
+.user-card{background:var(--card);border-radius:var(--r);border:1.5px solid var(--border);box-shadow:var(--sh);padding:18px;text-align:center;margin-bottom:14px}
+.user-av{width:60px;height:60px;border-radius:50%;background:var(--grad2);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff;margin:0 auto 10px;border:3px solid var(--green4)}
+.user-name{font-weight:800;font-size:15px;color:var(--text)}
+.user-role{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.user-stats{display:flex;gap:0;margin-top:12px;border-top:1px solid var(--border);padding-top:12px}
+.user-stat{flex:1;text-align:center;border-right:1px solid var(--border)}
+.user-stat:last-child{border-right:none}
+.user-stat-val{font-family:'Fredoka One',cursive;font-size:18px;color:var(--blue2)}
+.user-stat-lbl{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase}
+
+/* ── FEED ── */
+.feed{display:flex;flex-direction:column;gap:16px}
+
+/* ── CREATE POST ── */
+.create-post{
+  background:var(--card);border-radius:var(--r);
+  border:1.5px solid var(--border);box-shadow:var(--sh);padding:18px;
+}
+.cp-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.cp-av{width:42px;height:42px;border-radius:50%;background:var(--grad2);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;flex-shrink:0}
+.cp-input{
+  flex:1;background:var(--green5);border:1.5px solid var(--border);
+  border-radius:20px;padding:10px 16px;font-family:'Nunito',sans-serif;
+  font-size:14px;color:var(--text);outline:none;transition:all .2s;
+  cursor:text;
+}
+.cp-input:focus{border-color:var(--green3);background:#fff}
+.cp-form{display:none;animation:slideDown .25s ease}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.cp-form.open{display:block}
+.cp-label{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;margin-top:14px}
+.cp-field{
+  width:100%;background:var(--green5);border:1.5px solid var(--border);
+  border-radius:10px;padding:10px 14px;font-family:'Nunito',sans-serif;
+  font-size:14px;color:var(--text);outline:none;transition:border-color .2s;
+}
+.cp-field:focus{border-color:var(--green3);background:#fff}
+.cp-opts-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.cp-opt{
+  border:2px solid var(--border);border-radius:10px;padding:8px 6px;
+  text-align:center;cursor:pointer;transition:all .15s;background:var(--green5);
+  font-size:12px;font-weight:700;color:var(--muted);
+}
+.cp-opt .oi{font-size:20px;display:block;margin-bottom:3px}
+.cp-opt:hover{border-color:var(--green3);color:var(--green1);background:#fff}
+.cp-opt.selected{border-color:var(--green2);background:var(--green5);color:var(--green1)}
+.cp-opt.selected::after{content:'✓';position:absolute;top:3px;right:5px;font-size:9px;background:var(--green2);color:#fff;border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center}
+.cp-opt{position:relative}
+.cp-actions{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.cp-meta{display:flex;gap:8px;flex-wrap:wrap}
+.cp-meta-tag{font-size:12px;color:var(--muted);background:var(--green5);padding:4px 10px;border-radius:20px;font-weight:700}
+.post-btn{
+  background:var(--grad2);color:#fff;border:none;border-radius:10px;
+  padding:9px 20px;font-family:'Fredoka One',cursive;font-size:15px;
+  cursor:pointer;transition:all .18s;box-shadow:0 3px 12px rgba(67,160,71,.3);
+}
+.post-btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(67,160,71,.4)}
+
+/* ── POST CARD ── */
+.post-card{
+  background:var(--card);border-radius:var(--r);
+  border:1.5px solid var(--border);box-shadow:var(--sh);
+  overflow:hidden;animation:fadeUp .35s ease;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.post-header{display:flex;align-items:center;gap:12px;padding:16px 18px 12px}
+.post-av{width:42px;height:42px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;flex-shrink:0}
+.post-av.admin-av{background:linear-gradient(135deg,var(--sun),#E65100)}
+.post-meta{flex:1}
+.post-author{font-size:14px;font-weight:800;color:var(--text)}
+.post-info{font-size:12px;color:var(--muted);font-weight:600}
+.post-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:6px}
+.post-badge.admin{background:rgba(249,168,37,.15);color:#F57F17}
+.post-badge.aluno{background:var(--blue5);color:var(--blue1)}
+.post-time{font-size:11px;color:var(--muted);font-weight:600;margin-left:auto;flex-shrink:0}
+.post-body{padding:0 18px 14px}
+.post-question{font-size:16px;font-weight:800;color:var(--text);margin-bottom:4px;line-height:1.35}
+.post-desc{font-size:14px;color:var(--muted);margin-bottom:14px;font-weight:600}
+.post-turma{font-size:11px;background:var(--blue5);color:var(--blue1);padding:3px 10px;border-radius:20px;font-weight:700;display:inline-block;margin-bottom:12px}
+
+/* ── OPÇÕES DE VOTO ── */
+.vote-opts{display:flex;flex-direction:column;gap:8px}
+.vote-opt-row{
+  display:flex;align-items:center;gap:10px;padding:10px 14px;
+  border:2px solid var(--border);border-radius:12px;cursor:pointer;
+  transition:all .18s;background:var(--green5);position:relative;overflow:hidden;
+}
+.vote-opt-row::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;
+  background:var(--grad2);border-radius:12px 0 0 12px;
+  width:0;transition:width .5s ease;z-index:0;opacity:.08;
+}
+.vote-opt-row.voted::before{width:var(--bar-w,0%)}
+.vote-opt-row:hover:not(.voted){border-color:var(--green3);background:#fff;transform:translateX(3px)}
+.vote-opt-row.my-vote{border-color:var(--green2);background:#fff;box-shadow:0 0 0 3px rgba(67,160,71,.10)}
+.vote-opt-row.my-vote::after{content:none}
+.vote-ico{font-size:20px;z-index:1;flex-shrink:0;width:26px;text-align:center}
+.vote-label{font-size:13px;font-weight:700;color:var(--text);flex:1;z-index:1;line-height:1.3}
+.vote-bar-bg{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,rgba(67,160,71,.13),transparent);border-radius:12px;z-index:0;transition:width .55s ease}
+.vote-right{display:flex;flex-direction:column;align-items:flex-end;gap:1px;z-index:1;flex-shrink:0;min-width:58px}
+.vote-pct{font-size:14px;font-weight:800;color:var(--green1);z-index:1;line-height:1.3}
+.vote-cnt{font-size:10px;color:var(--muted);font-weight:600;z-index:1;line-height:1.2}
+.vote-my-tag{font-size:9px;font-weight:800;color:var(--green2);background:rgba(67,160,71,.13);padding:2px 7px;border-radius:20px;margin-top:2px;white-space:nowrap}
+
+/* ── POST FOOTER ── */
+.post-footer{
+  display:flex;align-items:center;gap:4px;padding:10px 18px 14px;
+  border-top:1px solid var(--border);
+}
+.post-stat{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);font-weight:700;padding:6px 10px;border-radius:8px;cursor:default}
+.post-action{
+  display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);
+  font-weight:700;padding:6px 10px;border-radius:8px;cursor:pointer;
+  border:none;background:none;font-family:'Nunito',sans-serif;transition:all .18s;
+}
+.post-action:hover{background:var(--green5);color:var(--green1)}
+.post-action.liked{color:var(--blue2)}
+.spacer{flex:1}
+.post-voted-badge{
+  font-size:11px;background:var(--green5);color:var(--green1);
+  padding:4px 10px;border-radius:20px;font-weight:700;
+  border:1px solid var(--green4);
+}
+.post-chart-area{padding:0 18px 16px;display:none}
+.post-chart-area.open{display:block}
+.chart-wrap{height:160px;position:relative}
+
+/* ── SIDEBAR DIREITA ── */
+.sidebar-right{position:sticky;top:76px}
+@media(max-width:1000px){.sidebar-right{display:none}}
+.side-card{background:var(--card);border-radius:var(--r);border:1.5px solid var(--border);box-shadow:var(--sh);padding:16px;margin-bottom:14px}
+.side-title{font-family:'Fredoka One',cursive;font-size:15px;color:var(--green1);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.trend-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--green5)}
+.trend-item:last-child{border-bottom:none}
+.trend-rank{font-family:'Fredoka One',cursive;font-size:18px;color:var(--green3)}
+.trend-info{flex:1}
+.trend-name{font-size:13px;font-weight:700;color:var(--text)}
+.trend-votes{font-size:11px;color:var(--muted);font-weight:600}
+.stat-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--green5)}
+.stat-row:last-child{border-bottom:none}
+.stat-row-lbl{font-size:13px;font-weight:700;color:var(--muted)}
+.stat-row-val{font-family:'Fredoka One',cursive;font-size:18px;color:var(--blue2)}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;right:24px;background:#2E7D32;color:#fff;padding:13px 22px;border-radius:14px;font-weight:700;font-size:14px;z-index:9999;transform:translateY(80px);opacity:0;transition:all .38s cubic-bezier(.34,1.56,.64,1);pointer-events:none;box-shadow:0 8px 28px rgba(46,125,50,.35)}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.err{background:#C62828;box-shadow:0 8px 28px rgba(198,40,40,.35)}
+
+/* ── ADMIN PANEL ── */
+.admin-panel{display:none;position:fixed;inset:0;z-index:200;background:rgba(13,27,14,.75);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:16px}
+.admin-panel.open{display:flex}
+.admin-box{background:var(--card);border-radius:20px;width:100%;max-width:820px;max-height:88vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.35);animation:popIn .25s ease}
+.admin-header{background:linear-gradient(135deg,#0D2240,#0D1B0E);padding:20px 24px;border-radius:20px 20px 0 0;display:flex;align-items:center;gap:12px}
+.admin-header h2{font-family:'Fredoka One',cursive;font-size:20px;color:#fff;flex:1}
+.admin-close{background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:8px;padding:6px 14px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer}
+.admin-body{padding:20px 24px}
+.admin-tabs{display:flex;gap:8px;margin-bottom:20px;border-bottom:2px solid var(--border);padding-bottom:16px}
+.a-tab{padding:8px 16px;border:none;background:none;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer;border-radius:8px;color:var(--muted);transition:all .18s}
+.a-tab.on{background:var(--green5);color:var(--green1)}
+.metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:18px}
+.metric{background:var(--green5);border-radius:12px;padding:14px;text-align:center;border:1.5px solid var(--border)}
+.metric .mv{font-family:'Fredoka One',cursive;font-size:28px;color:var(--blue2)}
+.metric .mw{font-size:13px;font-weight:700;color:var(--green1);padding-top:3px}
+.metric .ml{font-size:11px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.4px;font-weight:700}
+.adm-charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+@media(max-width:560px){.adm-charts{grid-template-columns:1fr}}
+.cbox{border:1.5px solid var(--border);border-radius:12px;padding:14px}
+.cbox h3{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px}
+.rank-item{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.rank-medal{font-size:15px;min-width:20px}
+.rank-body{flex:1}
+.rank-name{font-size:13px;font-weight:700;margin-bottom:3px}
+.rank-bw{background:var(--border);border-radius:20px;height:6px;overflow:hidden}
+.rank-b{height:100%;border-radius:20px;transition:width .6s ease}
+.rank-pct{font-size:12px;color:var(--muted);min-width:36px;text-align:right;font-weight:700}
+.all-votes-list{display:flex;flex-direction:column;gap:8px}
+.av-row{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--green5);border-radius:10px;font-size:13px}
+.av-name{font-weight:700;flex:1}
+.av-pill{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px}
+.av-pill.t{background:var(--blue5);color:var(--blue1)}
+.av-pill.d{background:var(--green5);color:var(--green1);border:1px solid var(--green4)}
+.av-time{font-size:11px;color:var(--muted);font-weight:600}
+.empty-state{text-align:center;padding:32px;color:var(--muted);font-size:14px;font-weight:700}
+
+/* ── BOTTOM NAV (mobile) ── */
+.bottom-nav{
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;z-index:200;
+  background:linear-gradient(135deg,#0D2240 0%,#0D1B0E 60%,#1A3520 100%);
+  border-top:1px solid rgba(255,255,255,.10);
+  padding:0 4px env(safe-area-inset-bottom,0);
+  box-shadow:0 -4px 24px rgba(0,0,0,.35);
+  height:64px;
+  align-items:center;
+  justify-content:space-around;
+}
+@media(max-width:720px){.bottom-nav{display:flex}}
+
+.bn-item{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;flex:1;height:100%;cursor:pointer;border:none;background:none;
+  color:rgba(255,255,255,.45);font-family:'Nunito',sans-serif;
+  font-size:10px;font-weight:700;transition:all .18s;padding:8px 2px;
+  border-top:2px solid transparent;position:relative;
+}
+.bn-item.active{color:#fff;border-top-color:var(--green3)}
+.bn-item:active{transform:scale(.92)}
+.bn-icon{font-size:20px;line-height:1}
+.bn-badge{
+  position:absolute;top:6px;right:calc(50% - 18px);
+  background:var(--green3);color:#fff;
+  font-size:9px;font-weight:900;min-width:16px;height:16px;
+  border-radius:20px;display:flex;align-items:center;justify-content:center;
+  padding:0 4px;
+}
+
+/* ── MOBILE USER HEADER strip ── */
+.mobile-user-strip{
+  display:none;
+  background:var(--card);border-bottom:1.5px solid var(--border);
+  padding:12px 16px;align-items:center;gap:12px;
+  box-shadow:var(--sh);
+}
+@media(max-width:720px){.mobile-user-strip{display:flex}}
+.mus-av{width:40px;height:40px;border-radius:50%;background:var(--grad2);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;border:2px solid var(--green4);flex-shrink:0}
+.mus-info{flex:1}
+.mus-name{font-size:14px;font-weight:800;color:var(--text)}
+.mus-role{font-size:11px;color:var(--muted);font-weight:700}
+.mus-stats{display:flex;gap:14px}
+.mus-stat{text-align:center}
+.mus-stat-val{font-family:'Fredoka One',cursive;font-size:16px;color:var(--blue2);line-height:1}
+.mus-stat-lbl{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.hidden{display:none!important}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--green4);border-radius:20px}
+
+.sep{border:none;border-top:2px dashed var(--border);margin:14px 0}
+.section-label{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:0 18px;margin-bottom:8px}
+.no-posts{text-align:center;padding:40px;color:var(--muted)}
+.no-posts .np-icon{font-size:48px;margin-bottom:12px}
+.comments-area{padding:0 18px 14px;border-top:1px solid var(--border);margin-top:2px}
+.comment-input-row{display:flex;gap:8px;align-items:center;padding:10px 0}
+.comment-mini-av{width:28px;height:28px;border-radius:50%;background:var(--grad2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0}
+.comment-input{flex:1;background:var(--green5);border:1.5px solid var(--border);border-radius:20px;padding:6px 14px;font-family:'Nunito',sans-serif;font-size:13px;color:var(--text);outline:none;transition:border-color .2s}
+.comment-input:focus{border-color:var(--green3);background:#fff}
+.comment-send{background:var(--green2);color:#fff;border:none;border-radius:20px;padding:6px 14px;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer}
+.comments-list{display:flex;flex-direction:column;gap:8px;padding-bottom:4px}
+.comment-item{display:flex;gap:8px}
+.comment-bubble{background:var(--green5);border-radius:0 12px 12px 12px;padding:8px 12px;font-size:13px;flex:1}
+.comment-bubble strong{font-size:12px;color:var(--green1);display:block;margin-bottom:2px}
+
+@media(max-width:720px){
+  .navbar{padding:0 12px;height:56px}
+  .nav-search{display:none}
+  .main-layout{padding:14px 10px}
+  .cp-opts-grid{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ LOGIN SCREEN ══════════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="lg1" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#43A047"/>
+            <stop offset="100%" style="stop-color:#1B5E20"/>
+          </linearGradient>
+          <linearGradient id="lg2" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#1565C0"/>
+            <stop offset="100%" style="stop-color:#42A5F5"/>
+          </linearGradient>
+        </defs>
+        <!-- Mountain -->
+        <ellipse cx="78" cy="88" rx="52" ry="44" fill="url(#lg1)" opacity=".9"/>
+        <!-- Tree trunk -->
+        <rect x="72" y="80" width="5" height="20" fill="#1B2E1C"/>
+        <!-- Tree top -->
+        <ellipse cx="75" cy="73" rx="13" ry="11" fill="#2E7D32"/>
+        <!-- Check V -->
+        <polyline points="100,96 118,116 162,66" stroke="url(#lg2)" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <!-- Water waves -->
+        <path d="M110,130 Q138,118 168,128 Q188,134 200,126" stroke="url(#lg2)" stroke-width="7" stroke-linecap="round" fill="none"/>
+        <path d="M115,143 Q143,131 173,141 Q193,147 205,140" stroke="#42A5F5" stroke-width="5" stroke-linecap="round" fill="none"/>
+        <!-- Sun -->
+        <circle cx="162" cy="68" r="14" fill="#F9A825"/>
+        <line x1="162" y1="48" x2="162" y2="42" stroke="#F9A825" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="162" y1="88" x2="162" y2="94" stroke="#F9A825" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="142" y1="68" x2="136" y2="68" stroke="#F9A825" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="182" y1="68" x2="188" y2="68" stroke="#F9A825" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="148" y1="54" x2="144" y2="50" stroke="#F9A825" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="176" y1="82" x2="180" y2="86" stroke="#F9A825" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="176" y1="54" x2="180" y2="50" stroke="#F9A825" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="148" y1="82" x2="144" y2="86" stroke="#F9A825" stroke-width="3.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="login-title">UniVoto</div>
+    <div class="login-sub">Rede Social de Votações Escolares</div>
+
+    <div class="role-tabs">
+      <button class="role-tab on" onclick="setRole('aluno',this)">🎒 Aluno</button>
+      <button class="role-tab" onclick="setRole('admin',this)">🔐 Admin</button>
+    </div>
+
+    <div id="login-aluno-fields">
+      <input class="login-input" id="inp-nome" type="text" placeholder="Seu nome completo">
+      <input class="login-input" id="inp-turma" type="text" placeholder="Sua turma (ex: 7ºA)">
+    </div>
+
+    <div id="login-admin-fields" style="display:none">
+      <input class="login-input" id="inp-admin-pw" type="password" placeholder="Senha do administrador">
+    </div>
+
+    <div class="login-err" id="login-err">❌ Dados inválidos. Tente novamente.</div>
+    <button class="login-btn" onclick="doLogin()">Entrar na UniVoto →</button>
+  </div>
+</div>
+
+<!-- ══════════ APP ══════════ -->
+<div id="app">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-logo">
+      <svg width="36" height="36" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="78" cy="88" rx="52" ry="44" fill="#43A047" opacity=".9"/>
+        <rect x="72" y="80" width="5" height="20" fill="#1B2E1C"/>
+        <ellipse cx="75" cy="73" rx="13" ry="11" fill="#2E7D32"/>
+        <polyline points="100,96 118,116 162,66" stroke="#42A5F5" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <path d="M110,130 Q138,118 168,128" stroke="#1976D2" stroke-width="7" stroke-linecap="round" fill="none"/>
+        <circle cx="162" cy="68" r="14" fill="#F9A825"/>
+        <line x1="162" y1="48" x2="162" y2="42" stroke="#F9A825" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="162" y1="88" x2="162" y2="94" stroke="#F9A825" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="142" y1="68" x2="136" y2="68" stroke="#F9A825" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="182" y1="68" x2="188" y2="68" stroke="#F9A825" stroke-width="3.5" stroke-linecap="round"/>
+      </svg>
+      <span class="nav-brand">UniVoto</span>
+    </div>
+    <input class="nav-search" placeholder="🔍  Buscar votações...">
+    <div class="nav-right">
+      <div class="nav-badge" id="nav-role-badge">🎒 Aluno</div>
+      <div class="nav-avatar" id="nav-avatar">?</div>
+      <button class="logout-mini" onclick="doLogout()">Sair</button>
+    </div>
+  </nav>
+
+  <!-- MOBILE USER STRIP -->
+  <div class="mobile-user-strip" id="mobile-user-strip">
+    <div class="mus-av" id="mus-av">?</div>
+    <div class="mus-info">
+      <div class="mus-name" id="mus-name">—</div>
+      <div class="mus-role" id="mus-role">—</div>
+    </div>
+    <div class="mus-stats">
+      <div class="mus-stat"><div class="mus-stat-val" id="mus-votes">0</div><div class="mus-stat-lbl">Votos</div></div>
+      <div class="mus-stat"><div class="mus-stat-val" id="mus-posts">0</div><div class="mus-stat-lbl">Posts</div></div>
+    </div>
+  </div>
+  <div class="main-layout">
+
+    <!-- SIDEBAR ESQUERDA -->
+    <aside class="sidebar-left">
+      <div class="user-card" id="user-card">
+        <div class="user-av" id="sidebar-av">?</div>
+        <div class="user-name" id="sidebar-name">—</div>
+        <div class="user-role" id="sidebar-role">—</div>
+        <div class="user-stats">
+          <div class="user-stat">
+            <div class="user-stat-val" id="stat-myvotes">0</div>
+            <div class="user-stat-lbl">Votos</div>
+          </div>
+          <div class="user-stat">
+            <div class="user-stat-val" id="stat-posts">0</div>
+            <div class="user-stat-lbl">Posts</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu-card">
+        <button class="menu-item active" onclick="filterFeed('all',this)">
+          <span class="menu-icon">🏠</span><span class="menu-label">Feed Geral</span>
+        </button>
+        <button class="menu-item" onclick="filterFeed('passeios',this)">
+          <span class="menu-icon">🗺️</span><span class="menu-label">Passeios</span>
+        </button>
+        <button class="menu-item" onclick="filterFeed('eventos',this)">
+          <span class="menu-icon">🎉</span><span class="menu-label">Eventos</span>
+        </button>
+        <button class="menu-item" onclick="filterFeed('myvotes',this)">
+          <span class="menu-icon">✅</span><span class="menu-label">Meus Votos</span>
+        </button>
+        <button class="menu-item" id="admin-menu-btn" style="display:none" onclick="openAdminPanel()">
+          <span class="menu-icon">⚙️</span><span class="menu-label">Painel Admin</span>
+          <span class="menu-count" id="admin-vote-count">0</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- FEED CENTRAL -->
+    <main>
+      <div class="feed" id="feed">
+
+        <!-- CREATE POST -->
+        <div class="create-post" id="create-post-box">
+          <div class="cp-header">
+            <div class="cp-av" id="cp-av">?</div>
+            <div class="cp-input" id="cp-trigger" onclick="toggleCreateForm()" tabindex="0">
+              📢 Criar nova votação para a turma...
+            </div>
+          </div>
+          <div class="cp-form" id="cp-form">
+            <div class="cp-label">Pergunta da votação</div>
+            <input class="cp-field" id="cp-question" type="text" placeholder="Ex: Qual passeio prefere?" maxlength="120">
+
+            <div class="cp-label">Descrição (opcional)</div>
+            <input class="cp-field" id="cp-desc" type="text" placeholder="Mais detalhes sobre a votação..." maxlength="200">
+
+            <div class="cp-label">Turma</div>
+            <input class="cp-field" id="cp-turma" type="text" placeholder="Ex: Toda a escola, 8ºA..." maxlength="30">
+
+            <div class="cp-label">Categoria</div>
+            <select class="cp-field" id="cp-cat">
+              <option value="passeios">🗺️ Passeio Escolar</option>
+              <option value="eventos">🎉 Evento</option>
+              <option value="geral">💬 Geral</option>
+            </select>
+
+            <div class="cp-label">Opções de votação (escolha até 6)</div>
+            <div class="cp-opts-grid" id="cp-opts-grid">
+              <div class="cp-opt" onclick="toggleOpt(this,'Parque de Diversões')"><span class="oi">🎢</span>Parque</div>
+              <div class="cp-opt" onclick="toggleOpt(this,'Zoológico')"><span class="oi">🦁</span>Zoológico</div>
+              <div class="cp-opt" onclick="toggleOpt(this,'Museu')"><span class="oi">🏛️</span>Museu</div>
+              <div class="cp-opt" onclick="toggleOpt(this,'Cinema')"><span class="oi">🎬</span>Cinema</div>
+              <div class="cp-opt" onclick="toggleOpt(this,'Praia')"><span class="oi">🏖️</span>Praia</div>
+              <div class="cp-opt" onclick="toggleOpt(this,'Outros')"><span class="oi">🌟</span>Outros</div>
+            </div>
+
+            <div class="cp-actions">
+              <div class="cp-meta">
+                <span class="cp-meta-tag" id="cp-meta-user">👤 —</span>
+                <span class="cp-meta-tag">📅 Agora</span>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="post-btn" style="background:var(--border);color:var(--muted);box-shadow:none" onclick="cancelCreate()">Cancelar</button>
+                <button class="post-btn" onclick="createPost()">📢 Publicar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- POSTS vão aqui -->
+        <div id="posts-container"></div>
+
+      </div>
+    </main>
+
+    <!-- SIDEBAR DIREITA -->
+    <aside class="sidebar-right">
+      <div class="side-card">
+        <div class="side-title">🔥 Tendências</div>
+        <div id="trending-list"></div>
+      </div>
+      <div class="side-card">
+        <div class="side-title">📊 Estatísticas</div>
+        <div id="global-stats"></div>
+      </div>
+    </aside>
+
+  </div>
+  <!-- BOTTOM NAV (mobile) -->
+  <nav class="bottom-nav" id="bottom-nav">
+    <button class="bn-item active" id="bn-all" onclick="filterFeedMobile('all',this)">
+      <span class="bn-icon">🏠</span>Feed
+    </button>
+    <button class="bn-item" id="bn-passeios" onclick="filterFeedMobile('passeios',this)">
+      <span class="bn-icon">🗺️</span>Passeios
+    </button>
+    <button class="bn-item" id="bn-eventos" onclick="filterFeedMobile('eventos',this)">
+      <span class="bn-icon">🎉</span>Eventos
+    </button>
+    <button class="bn-item" id="bn-myvotes" onclick="filterFeedMobile('myvotes',this)">
+      <span class="bn-icon">✅</span>Meus
+    </button>
+    <button class="bn-item" id="bn-admin" style="display:none" onclick="openAdminPanel()">
+      <span class="bn-icon">⚙️</span>Admin
+      <span class="bn-badge" id="bn-admin-badge">0</span>
+    </button>
+  </nav>
+
+</div>
+<div class="admin-panel" id="admin-panel">
+  <div class="admin-box">
+    <div class="admin-header">
+      <svg width="28" height="28" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="78" cy="88" rx="52" ry="44" fill="#43A047" opacity=".9"/>
+        <rect x="72" y="80" width="5" height="20" fill="#1B2E1C"/>
+        <ellipse cx="75" cy="73" rx="13" ry="11" fill="#2E7D32"/>
+        <polyline points="100,96 118,116 162,66" stroke="#42A5F5" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <circle cx="162" cy="68" r="14" fill="#F9A825"/>
+      </svg>
+      <h2>Painel Administrativo</h2>
+      <button class="admin-close" onclick="closeAdminPanel()">✕ Fechar</button>
+    </div>
+    <div class="admin-body">
+      <div class="admin-tabs">
+        <button class="a-tab on" onclick="aTab('stats',this)">📊 Estatísticas</button>
+        <button class="a-tab" onclick="aTab('ranking',this)">🏅 Ranking</button>
+        <button class="a-tab" onclick="aTab('votes',this)">📋 Votos</button>
+        <button class="a-tab" onclick="aTab('posts',this)">📢 Posts</button>
+      </div>
+      <div id="adm-stats"></div>
+      <div id="adm-ranking" class="hidden"></div>
+      <div id="adm-votes" class="hidden"></div>
+      <div id="adm-posts" class="hidden"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════════
+   ESTADO GLOBAL
+   ══════════════════════════════════════════ */
+const ADMIN_PW = '123';
+const STORAGE_K = 'univoto_social_v2';
+const STORAGE_U = 'univoto_user_v2';
+
+const ICO = {'Parque de Diversões':'🎢','Zoológico':'🦁','Museu':'🏛️','Cinema':'🎬','Praia':'🏖️','Outros':'🌟'};
+const CLR = ['#2E7D32','#1565C0','#F9A825','#00838F','#6A1B9A','#BF360C'];
+const BAD = ['merda','bosta','puta','porra','viado','caralho','buceta','vsf','foda','idiota','burro','lixo','corno'];
+
+let currentUser = null;  // { nome, turma, role:'aluno'|'admin' }
+let currentRole = 'aluno';
+let state = { posts:[], votes:{}, likes:{}, comments:{} };
+let selectedOpts = [];
+let currentFilter = 'all';
+let barChart, pieChart;
+
+// ─── Load / Save ───────────────────────────────────
+function load(){
+  try{ state = JSON.parse(localStorage.getItem(STORAGE_K))||{posts:[],votes:{},likes:{},comments:{}}; }catch(e){ state={posts:[],votes:{},likes:{},comments:{}}; }
+  if(!state.posts) state.posts=[];
+  if(!state.votes) state.votes={};
+  if(!state.likes) state.likes={};
+  if(!state.comments) state.comments={};
+  // Seed posts padrão se vazio
+  if(state.posts.length===0) seedPosts();
+}
+function save(){
+  try{ localStorage.setItem(STORAGE_K, JSON.stringify(state)); }catch(e){}
+}
+function loadUser(){
+  try{ currentUser = JSON.parse(localStorage.getItem(STORAGE_U)); }catch(e){ currentUser=null; }
+}
+function saveUser(){
+  try{ localStorage.setItem(STORAGE_U, JSON.stringify(currentUser)); }catch(e){}
+}
+
+// ─── Seed posts iniciais ───────────────────────────
+function seedPosts(){
+  const now = new Date();
+  const ago = (m) => new Date(now - m*60000).toISOString();
+  state.posts = [
+    {id:'p1',author:'Direção Escolar',turma:'Toda a escola',role:'admin',question:'Qual passeio a escola deve fazer no próximo semestre?',desc:'Estamos planejando o passeio anual! Vote e ajude a decidir.',cat:'passeios',opts:['Parque de Diversões','Zoológico','Praia','Museu'],ts:ago(120)},
+    {id:'p2',author:'Prof. Ana Lima',turma:'8ºA e 8ºB',role:'admin',question:'Qual atividade cultural você prefere para o Dia do Estudante?',desc:'Vote na sua preferência para a comemoração.',cat:'eventos',opts:['Cinema','Museu','Parque de Diversões','Outros'],ts:ago(60)},
+    {id:'p3',author:'Grêmio Estudantil',turma:'Toda a escola',role:'aluno',question:'Onde devemos ir na excursão de fim de ano?',desc:'Estamos coletando sugestões para a viagem mais esperada do ano!',cat:'passeios',opts:['Praia','Parque de Diversões','Zoológico','Outros'],ts:ago(30)},
+  ];
+  state.votes['p1']={};state.votes['p2']={};state.votes['p3']={};
+  state.likes['p1']=[];state.likes['p2']=[];state.likes['p3']=[];
+  state.comments['p1']=[{author:'Maria S.',text:'Quero muito o Zoológico! 🦁',ts:ago(100)}];
+  state.comments['p2']=[];
+  state.comments['p3']=[{author:'Pedro A.',text:'Praia! Praia! 🏖️',ts:ago(20)}];
+  save();
+}
+
+// ─── Utils ────────────────────────────────────────
+function esc(s){ const d=document.createElement('div');d.textContent=s;return d.innerHTML; }
+function ini(n){ return n.trim().split(' ').filter(Boolean).slice(0,2).map(w=>w[0]||'').join('').toUpperCase()||'?'; }
+function hasBad(t){ const s=t.toLowerCase().replace(/[^a-záéíóúàãõâêôç ]/gi,' '); return BAD.some(w=>s.includes(w)); }
+function timeAgo(ts){
+  const d=Math.floor((Date.now()-new Date(ts))/1000);
+  if(d<60) return 'agora';
+  if(d<3600) return Math.floor(d/60)+'min';
+  if(d<86400) return Math.floor(d/3600)+'h';
+  return Math.floor(d/86400)+'d';
+}
+function toast(msg,err=false){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast'+(err?' err':'')+' show';
+  setTimeout(()=>t.classList.remove('show'),3200);
+}
+function uid(){ return 'p'+Date.now()+Math.random().toString(36).slice(2,6); }
+
+/* ══════════════════════════════════════════
+   LOGIN
+   ══════════════════════════════════════════ */
+function setRole(role, btn){
+  currentRole = role;
+  document.querySelectorAll('.role-tab').forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('login-aluno-fields').style.display = role==='aluno'?'block':'none';
+  document.getElementById('login-admin-fields').style.display = role==='admin'?'block':'none';
+  document.getElementById('login-err').style.display='none';
+}
+
+function doLogin(){
+  const err = document.getElementById('login-err');
+  err.style.display='none';
+  if(currentRole==='admin'){
+    const pw = document.getElementById('inp-admin-pw').value;
+    if(pw !== ADMIN_PW){ err.style.display='block'; err.textContent='❌ Senha incorreta.'; return; }
+    currentUser = {nome:'Administrador',turma:'—',role:'admin'};
+  } else {
+    const nome = document.getElementById('inp-nome').value.trim();
+    const turma = document.getElementById('inp-turma').value.trim();
+    if(!nome){ err.style.display='block'; err.textContent='⚠️ Digite seu nome.'; return; }
+    if(!turma){ err.style.display='block'; err.textContent='⚠️ Digite sua turma.'; return; }
+    if(hasBad(nome)){ err.style.display='block'; err.textContent='⚠️ Nome contém palavras inadequadas.'; return; }
+    currentUser = {nome, turma, role:'aluno'};
+  }
+  saveUser();
+  enterApp();
+}
+
+function enterApp(){
+  document.getElementById('login-screen').classList.add('hide');
+  document.getElementById('app').classList.add('visible');
+  setupUI();
+  renderFeed();
+  renderSidebars();
+}
+
+function doLogout(){
+  currentUser = null;
+  localStorage.removeItem(STORAGE_U);
+  document.getElementById('login-screen').classList.remove('hide');
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('inp-admin-pw').value='';
+  document.getElementById('inp-nome').value='';
+  document.getElementById('inp-turma').value='';
+}
+
+function setupUI(){
+  const u = currentUser;
+  const av = ini(u.nome);
+  document.getElementById('nav-avatar').textContent = av;
+  document.getElementById('sidebar-av').textContent = av;
+  document.getElementById('sidebar-name').textContent = u.nome;
+  document.getElementById('sidebar-role').textContent = u.role==='admin'?'🔐 Administrador':'🎒 Aluno — '+u.turma;
+  document.getElementById('nav-role-badge').textContent = u.role==='admin'?'⚙️ Admin':'🎒 '+u.nome.split(' ')[0];
+  document.getElementById('nav-role-badge').className = 'nav-badge'+(u.role==='admin'?' admin':'');
+  document.getElementById('cp-av').textContent = av;
+  document.getElementById('cp-meta-user').textContent = '👤 '+u.nome;
+  document.getElementById('cp-turma').value = u.turma!=='—'?u.turma:'';
+  // Mobile user strip
+  document.getElementById('mus-av').textContent = av;
+  document.getElementById('mus-name').textContent = u.nome;
+  document.getElementById('mus-role').textContent = u.role==='admin'?'🔐 Administrador':'🎒 '+u.turma;
+  if(u.role==='admin'){
+    document.getElementById('admin-menu-btn').style.display='flex';
+    document.getElementById('bn-admin').style.display='flex';
+  }
+  updateUserStats();
+}
+
+function updateUserStats(){
+  let myV=0, myP=0;
+  state.posts.forEach(p=>{
+    const pv = state.votes[p.id]||{};
+    if(pv[currentUser.nome]) myV++;
+    if(p.author===currentUser.nome) myP++;
+  });
+  document.getElementById('stat-myvotes').textContent=myV;
+  document.getElementById('stat-posts').textContent=myP;
+  // Mobile strip
+  document.getElementById('mus-votes').textContent=myV;
+  document.getElementById('mus-posts').textContent=myP;
+  // admin badge
+  const total = Object.values(state.votes).reduce((a,pv)=>a+Object.keys(pv).length,0);
+  document.getElementById('admin-vote-count').textContent=total;
+  document.getElementById('bn-admin-badge').textContent=total;
+}
+
+/* ══════════════════════════════════════════
+   CREATE POST
+   ══════════════════════════════════════════ */
+function toggleCreateForm(){
+  const f=document.getElementById('cp-form');
+  f.classList.toggle('open');
+}
+
+function cancelCreate(){
+  document.getElementById('cp-form').classList.remove('open');
+  resetCreateForm();
+}
+
+function resetCreateForm(){
+  document.getElementById('cp-question').value='';
+  document.getElementById('cp-desc').value='';
+  document.getElementById('cp-turma').value = currentUser.turma!=='—'?currentUser.turma:'';
+  selectedOpts=[];
+  document.querySelectorAll('.cp-opt').forEach(o=>o.classList.remove('selected'));
+}
+
+function toggleOpt(el, val){
+  const idx=selectedOpts.indexOf(val);
+  if(idx>-1){ selectedOpts.splice(idx,1); el.classList.remove('selected'); }
+  else if(selectedOpts.length<6){ selectedOpts.push(val); el.classList.add('selected'); }
+  else{ toast('⚠️ Máximo de 6 opções!',true); }
+}
+
+function createPost(){
+  const q = document.getElementById('cp-question').value.trim();
+  const d = document.getElementById('cp-desc').value.trim();
+  const t = document.getElementById('cp-turma').value.trim();
+  const cat = document.getElementById('cp-cat').value;
+  if(!q){ toast('⚠️ Digite a pergunta!',true); return; }
+  if(hasBad(q)||hasBad(d)){ toast('⚠️ Conteúdo com palavras inadequadas!',true); return; }
+  if(selectedOpts.length<2){ toast('⚠️ Escolha pelo menos 2 opções!',true); return; }
+  const post = {
+    id: uid(),
+    author: currentUser.nome,
+    turma: t||'Toda a escola',
+    role: currentUser.role,
+    question: q, desc: d, cat,
+    opts: [...selectedOpts],
+    ts: new Date().toISOString()
+  };
+  state.posts.unshift(post);
+  state.votes[post.id]={};
+  state.likes[post.id]=[];
+  state.comments[post.id]=[];
+  save();
+  cancelCreate();
+  renderFeed();
+  renderSidebars();
+  toast('📢 Votação publicada com sucesso!');
+}
+
+/* ══════════════════════════════════════════
+   FEED
+   ══════════════════════════════════════════ */
+function filterFeedMobile(f, btn){
+  currentFilter=f;
+  // sync bottom nav active
+  document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  // sync sidebar menu
+  document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active'));
+  const map={'all':0,'passeios':1,'eventos':2,'myvotes':3};
+  const menuItems=document.querySelectorAll('.menu-item');
+  if(map[f]!==undefined && menuItems[map[f]]) menuItems[map[f]].classList.add('active');
+  renderFeed();
+}
+
+function filterFeed(f, btn){
+  currentFilter=f;
+  document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active'));
+  btn.classList.add('active');
+  // sync bottom nav
+  const map={'all':'bn-all','passeios':'bn-passeios','eventos':'bn-eventos','myvotes':'bn-myvotes'};
+  document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
+  if(map[f]) { const el=document.getElementById(map[f]); if(el) el.classList.add('active'); }
+  renderFeed();
+}
+
+function getFilteredPosts(){
+  let posts = [...state.posts];
+  if(currentFilter==='passeios') posts=posts.filter(p=>p.cat==='passeios');
+  if(currentFilter==='eventos') posts=posts.filter(p=>p.cat==='eventos');
+  if(currentFilter==='myvotes') posts=posts.filter(p=>(state.votes[p.id]||{})[currentUser.nome]);
+  return posts;
+}
+
+function renderFeed(){
+  const cont = document.getElementById('posts-container');
+  const posts = getFilteredPosts();
+  if(!posts.length){
+    cont.innerHTML=`<div class="no-posts"><div class="np-icon">🗳️</div><p>Nenhuma votação aqui ainda.</p></div>`;
+    return;
+  }
+  cont.innerHTML = posts.map(p=>renderPost(p)).join('');
+  // re-attach vote bar widths
+  posts.forEach(p=>updateVoteBars(p.id));
+}
+
+function renderPost(p){
+  const pv = state.votes[p.id]||{};
+  const total = Object.keys(pv).length;
+  const myVote = pv[currentUser.nome];
+  const liked = (state.likes[p.id]||[]).includes(currentUser.nome);
+  const likes = (state.likes[p.id]||[]).length;
+  const comments = (state.comments[p.id]||[]).length;
+  const catLabel = {'passeios':'🗺️ Passeio','eventos':'🎉 Evento','geral':'💬 Geral'}[p.cat]||'💬';
+
+  const optsHTML = p.opts.map(opt=>{
+    const cnt = Object.values(pv).filter(v=>v===opt).length;
+    const pct = total>0?Math.round(cnt/total*100):0;
+    const isMyVote = myVote===opt;
+    return `<div class="vote-opt-row${myVote?' voted':''}${isMyVote?' my-vote':''}"
+      style="--bar-w:${pct}%"
+      onclick="${myVote?'':'castVote(\''+p.id+'\',\''+opt.replace(/'/g,"\\'")+'\')'}"
+      id="vopt-${p.id}-${opt.replace(/[^a-z0-9]/gi,'_')}">
+      <div class="vote-bar-bg" style="width:${myVote?pct+'%':'0%'}"></div>
+      <span class="vote-ico">${ICO[opt]||'🌟'}</span>
+      <span class="vote-label">${esc(opt)}</span>
+      ${myVote?`<div class="vote-right"><span class="vote-pct">${pct}%</span><span class="vote-cnt">${cnt} voto${cnt!==1?'s':''}</span>${isMyVote?'<span class="vote-my-tag">✓ Seu voto</span>':''}</div>`:''}
+    </div>`;
+  }).join('');
+
+  const commentsHTML = renderComments(p.id);
+
+  return `<div class="post-card" id="post-${p.id}">
+    <div class="post-header">
+      <div class="post-av ${p.role==='admin'?'admin-av':''}">${ini(p.author)}</div>
+      <div class="post-meta">
+        <div class="post-author">${esc(p.author)}<span class="post-badge ${p.role}">${p.role==='admin'?'Admin':'Aluno'}</span></div>
+        <div class="post-info">${esc(p.turma)} · ${catLabel}</div>
+      </div>
+      <div class="post-time">${timeAgo(p.ts)}</div>
+    </div>
+    <div class="post-body">
+      <div class="post-question">${esc(p.question)}</div>
+      ${p.desc?`<div class="post-desc">${esc(p.desc)}</div>`:''}
+      <div class="post-turma">${esc(p.turma)}</div>
+      <div class="vote-opts">${optsHTML}</div>
+    </div>
+    <div class="post-footer">
+      <div class="post-stat">🗳️ ${total} voto${total!==1?'s':''}</div>
+      <button class="post-action${liked?' liked':''}" onclick="toggleLike('${p.id}')">
+        ${liked?'💙':'🤍'} ${likes}
+      </button>
+      <button class="post-action" onclick="toggleComments('${p.id}')">
+        💬 ${comments}
+      </button>
+      <div class="spacer"></div>
+      ${myVote?`<div class="post-voted-badge">✅ Você votou</div>`:''}
+      <button class="post-action" onclick="toggleChart('${p.id}')">📊</button>
+      ${currentUser.role==='admin'?`<button class="post-action" onclick="deletePost('${p.id}')" style="color:#C62828">🗑️</button>`:''}
+    </div>
+    <div class="post-chart-area" id="chart-${p.id}">
+      <div class="chart-wrap"><canvas id="canvas-${p.id}" role="img" aria-label="Gráfico de votos"></canvas></div>
+    </div>
+    <div class="comments-area" id="comments-${p.id}" style="display:none">
+      ${commentsHTML}
+    </div>
+  </div>`;
+}
+
+function renderComments(pid){
+  const comms = state.comments[pid]||[];
+  const listHTML = comms.length ? `<div class="comments-list">${comms.slice(-5).map(c=>`
+    <div class="comment-item">
+      <div class="comment-mini-av">${ini(c.author)}</div>
+      <div class="comment-bubble"><strong>${esc(c.author)}</strong>${esc(c.text)}</div>
+    </div>`).join('')}</div>` : '';
+  return `${listHTML}
+    <div class="comment-input-row">
+      <div class="comment-mini-av">${ini(currentUser.nome)}</div>
+      <input class="comment-input" id="cinp-${pid}" placeholder="Escrever comentário..." maxlength="200" onkeydown="if(event.key==='Enter')sendComment('${pid}')">
+      <button class="comment-send" onclick="sendComment('${pid}')">Enviar</button>
+    </div>`;
+}
+
+function updateVoteBars(pid){
+  const pv = state.votes[pid]||{};
+  const total = Object.keys(pv).length;
+  const myVote = pv[currentUser.nome];
+  if(!myVote) return;
+  const post = state.posts.find(p=>p.id===pid);
+  if(!post) return;
+  post.opts.forEach(opt=>{
+    const cnt = Object.values(pv).filter(v=>v===opt).length;
+    const pct = total>0?Math.round(cnt/total*100):0;
+    const el = document.getElementById('vopt-'+pid+'-'+opt.replace(/[^a-z0-9]/gi,'_'));
+    if(el){ const bg=el.querySelector('.vote-bar-bg'); if(bg) bg.style.width=pct+'%'; }
+  });
+}
+
+/* ══════════════════════════════════════════
+   AÇÕES
+   ══════════════════════════════════════════ */
+function castVote(pid, opt){
+  if(!currentUser){ toast('⚠️ Faça login!',true); return; }
+  const pv = state.votes[pid]||{};
+  if(pv[currentUser.nome]){ toast('ℹ️ Você já votou nesta enquete.',true); return; }
+  pv[currentUser.nome] = opt;
+  state.votes[pid] = pv;
+  save();
+  // Re-render só o post
+  const post = state.posts.find(p=>p.id===pid);
+  if(post){
+    const el = document.getElementById('post-'+pid);
+    if(el){ el.outerHTML = renderPost(post); updateVoteBars(pid); }
+  }
+  renderSidebars();
+  updateUserStats();
+  toast('🎉 Voto registrado: '+opt+'!');
+}
+
+function toggleLike(pid){
+  const likes = state.likes[pid]||[];
+  const idx = likes.indexOf(currentUser.nome);
+  if(idx>-1) likes.splice(idx,1);
+  else likes.push(currentUser.nome);
+  state.likes[pid] = likes;
+  save();
+  const post = state.posts.find(p=>p.id===pid);
+  if(post){ const el=document.getElementById('post-'+pid); if(el){ el.outerHTML=renderPost(post); updateVoteBars(pid); } }
+}
+
+function toggleComments(pid){
+  const el = document.getElementById('comments-'+pid);
+  if(el) el.style.display = el.style.display==='none'?'block':'none';
+}
+
+function sendComment(pid){
+  const inp = document.getElementById('cinp-'+pid);
+  if(!inp) return;
+  const text = inp.value.trim();
+  if(!text) return;
+  if(hasBad(text)){ toast('⚠️ Comentário com palavras inadequadas!',true); return; }
+  const comms = state.comments[pid]||[];
+  comms.push({author:currentUser.nome,text,ts:new Date().toISOString()});
+  state.comments[pid]=comms;
+  save();
+  const post = state.posts.find(p=>p.id===pid);
+  if(post){ const el=document.getElementById('post-'+pid); if(el){ el.outerHTML=renderPost(post); updateVoteBars(pid); toggleComments(pid); } }
+  toast('💬 Comentário enviado!');
+}
+
+function toggleChart(pid){
+  const area = document.getElementById('chart-'+pid);
+  if(!area) return;
+  const open = area.classList.toggle('open');
+  if(open) renderPostChart(pid);
+}
+
+function renderPostChart(pid){
+  const pv = state.votes[pid]||{};
+  const post = state.posts.find(p=>p.id===pid);
+  if(!post) return;
+  const canvas = document.getElementById('canvas-'+pid);
+  if(!canvas) return;
+  if(canvas._chart) canvas._chart.destroy();
+  canvas._chart = new Chart(canvas, {
+    type:'doughnut',
+    data:{
+      labels:post.opts,
+      datasets:[{data:post.opts.map(o=>Object.values(pv).filter(v=>v===o).length),backgroundColor:CLR.slice(0,post.opts.length),borderWidth:2,borderColor:'#fff'}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{family:'Nunito',size:11},boxWidth:12}}}}
+  });
+}
+
+function deletePost(pid){
+  if(!confirm('Remover esta votação?')) return;
+  state.posts = state.posts.filter(p=>p.id!==pid);
+  delete state.votes[pid]; delete state.likes[pid]; delete state.comments[pid];
+  save();
+  renderFeed();
+  renderSidebars();
+  toast('🗑️ Votação removida.');
+}
+
+/* ══════════════════════════════════════════
+   SIDEBARS
+   ══════════════════════════════════════════ */
+function renderSidebars(){
+  // Trending
+  const counts={};
+  state.posts.forEach(p=>{
+    const pv=state.votes[p.id]||{};
+    p.opts.forEach(o=>{ const c=Object.values(pv).filter(v=>v===o).length; counts[o]=(counts[o]||0)+c; });
+  });
+  const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const medals=['🥇','🥈','🥉','4️⃣','5️⃣'];
+  document.getElementById('trending-list').innerHTML = sorted.length ? sorted.map(([opt,cnt],i)=>`
+    <div class="trend-item">
+      <div class="trend-rank">${medals[i]||i+1}</div>
+      <div class="trend-info">
+        <div class="trend-name">${ICO[opt]||'🌟'} ${opt}</div>
+        <div class="trend-votes">${cnt} voto${cnt!==1?'s':''}</div>
+      </div>
+    </div>`).join('') : '<div style="color:var(--muted);font-size:13px">Nenhum voto ainda.</div>';
+
+  // Global stats
+  const totalVotos = Object.values(state.votes).reduce((a,pv)=>a+Object.keys(pv).length,0);
+  const totalPosts = state.posts.length;
+  const turmasSet = new Set();
+  Object.values(state.votes).forEach(pv=>Object.keys(pv).forEach(n=>turmasSet.add(n)));
+  document.getElementById('global-stats').innerHTML = `
+    <div class="stat-row"><div class="stat-row-lbl">🗳️ Total de votos</div><div class="stat-row-val">${totalVotos}</div></div>
+    <div class="stat-row"><div class="stat-row-lbl">📢 Votações</div><div class="stat-row-val">${totalPosts}</div></div>
+    <div class="stat-row"><div class="stat-row-lbl">👥 Participantes</div><div class="stat-row-val">${turmasSet.size}</div></div>`;
+}
+
+/* ══════════════════════════════════════════
+   ADMIN PANEL
+   ══════════════════════════════════════════ */
+function openAdminPanel(){
+  document.getElementById('admin-panel').classList.add('open');
+  renderAdminStats();
+}
+function closeAdminPanel(){
+  document.getElementById('admin-panel').classList.remove('open');
+  if(barChart){barChart.destroy();barChart=null;}
+  if(pieChart){pieChart.destroy();pieChart=null;}
+}
+
+let currentATab='stats';
+function aTab(tab,btn){
+  currentATab=tab;
+  document.querySelectorAll('.a-tab').forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');
+  ['stats','ranking','votes','posts'].forEach(t=>document.getElementById('adm-'+t).classList.toggle('hidden',t!==tab));
+  if(tab==='stats') renderAdminStats();
+  if(tab==='ranking') renderAdminRanking();
+  if(tab==='votes') renderAdminVotes();
+  if(tab==='posts') renderAdminPosts();
+}
+
+function renderAdminStats(){
+  const totalVotos = Object.values(state.votes).reduce((a,pv)=>a+Object.keys(pv).length,0);
+  const totalPosts = state.posts.length;
+  const participantes = new Set();
+  Object.values(state.votes).forEach(pv=>Object.keys(pv).forEach(n=>participantes.add(n)));
+  const counts={};
+  state.posts.forEach(p=>{ const pv=state.votes[p.id]||{}; p.opts.forEach(o=>{ const c=Object.values(pv).filter(v=>v===o).length; counts[o]=(counts[o]||0)+c; }); });
+  const win = Object.keys(counts).reduce((a,b)=>counts[a]>=counts[b]?a:b,'');
+
+  document.getElementById('adm-stats').innerHTML = `
+    <div class="metrics-grid">
+      <div class="metric"><div class="mi" style="font-size:22px;margin-bottom:4px">🗳️</div><div class="mv">${totalVotos}</div><div class="ml">Total Votos</div></div>
+      <div class="metric"><div class="mi" style="font-size:22px;margin-bottom:4px">📢</div><div class="mv">${totalPosts}</div><div class="ml">Votações</div></div>
+      <div class="metric"><div class="mi" style="font-size:22px;margin-bottom:4px">👥</div><div class="mv">${participantes.size}</div><div class="ml">Participantes</div></div>
+      <div class="metric"><div class="mi" style="font-size:22px;margin-bottom:4px">🏆</div><div class="mw">${win?ICO[win]+' '+win:'—'}</div><div class="ml">Mais Votado</div></div>
+    </div>
+    <div class="adm-charts">
+      <div class="cbox"><h3>Votos por Destino</h3><div style="position:relative;height:200px"><canvas id="adm-bar-c" role="img" aria-label="Votos admin"></canvas></div></div>
+      <div class="cbox"><h3>Distribuição</h3><div style="position:relative;height:200px"><canvas id="adm-pie-c" role="img" aria-label="Pizza admin"></canvas></div></div>
+    </div>`;
+  setTimeout(()=>{
+    const opts=Object.keys(counts);
+    if(barChart) barChart.destroy();
+    barChart = new Chart(document.getElementById('adm-bar-c'),{
+      type:'bar',
+      data:{labels:opts.map(o=>o.split(' ')[0]),datasets:[{label:'Votos',data:opts.map(o=>counts[o]),backgroundColor:CLR.slice(0,opts.length),borderRadius:7,borderSkipped:false}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#5A7A5C'}},y:{grid:{color:'rgba(90,122,92,.1)'},ticks:{stepSize:1,font:{size:10},color:'#5A7A5C'}}}}
+    });
+    if(pieChart) pieChart.destroy();
+    pieChart = new Chart(document.getElementById('adm-pie-c'),{
+      type:'doughnut',
+      data:{labels:opts,datasets:[{data:opts.map(o=>counts[o]),backgroundColor:CLR.slice(0,opts.length),borderWidth:2,borderColor:'#fff'}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{family:'Nunito',size:10},boxWidth:10}}}}
+    });
+  },80);
+}
+
+function renderAdminRanking(){
+  const counts={};
+  state.posts.forEach(p=>{ const pv=state.votes[p.id]||{}; p.opts.forEach(o=>{ const c=Object.values(pv).filter(v=>v===o).length; counts[o]=(counts[o]||0)+c; }); });
+  const total=Object.values(counts).reduce((a,b)=>a+b,0);
+  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const medals=['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣'];
+  const max=sorted[0]?.[1]||1;
+  document.getElementById('adm-ranking').innerHTML = sorted.length ? sorted.map(([opt,cnt],i)=>`
+    <div class="rank-item">
+      <div class="rank-medal">${medals[i]||i+1}</div>
+      <div class="rank-body">
+        <div class="rank-name">${ICO[opt]||'🌟'} ${opt}</div>
+        <div class="rank-bw"><div class="rank-b" style="width:${Math.round(cnt/max*100)}%;background:${CLR[i%CLR.length]}"></div></div>
+      </div>
+      <div class="rank-pct">${cnt}v · ${total>0?Math.round(cnt/total*100):'0'}%</div>
+    </div>`).join('') : '<div class="empty-state">Nenhum voto ainda.</div>';
+}
+
+function renderAdminVotes(){
+  const rows=[];
+  state.posts.forEach(p=>{
+    const pv=state.votes[p.id]||{};
+    Object.entries(pv).forEach(([nome,voto])=>{
+      rows.push({nome,voto,post:p.question});
+    });
+  });
+  document.getElementById('adm-votes').innerHTML = rows.length ? `
+    <div class="all-votes-list">${rows.slice(0,30).map(r=>`
+      <div class="av-row">
+        <div class="av-name">👤 ${esc(r.nome)}</div>
+        <span class="av-pill d">${ICO[r.voto]||'🌟'} ${r.voto}</span>
+        <div class="av-time" style="flex:1;text-align:right;font-size:11px;color:var(--muted)">${esc(r.post.slice(0,30))}...</div>
+      </div>`).join('')}
+    </div>` : '<div class="empty-state">Nenhum voto registrado.</div>';
+}
+
+function renderAdminPosts(){
+  document.getElementById('adm-posts').innerHTML = state.posts.length ? `
+    <div class="all-votes-list">${state.posts.map(p=>{
+      const total=Object.keys(state.votes[p.id]||{}).length;
+      return `<div class="av-row" style="flex-wrap:wrap;gap:6px">
+        <div class="av-name">${esc(p.question)}</div>
+        <span class="av-pill t">${esc(p.turma)}</span>
+        <span class="av-pill d">🗳️ ${total}v</span>
+        <span class="av-pill" style="background:#FFF3E0;color:#E65100">${timeAgo(p.ts)}</span>
+        <button style="background:#FFEBEE;border:none;border-radius:6px;padding:2px 8px;color:#C62828;font-size:11px;font-weight:700;cursor:pointer" onclick="deletePost('${p.id}');closeAdminPanel()">🗑️</button>
+      </div>`;
+    }).join('')}</div>` : '<div class="empty-state">Nenhum post ainda.</div>';
+}
+
+/* ══════════════════════════════════════════
+   INIT
+   ══════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded',()=>{
+  load();
+  loadUser();
+  if(currentUser){ enterApp(); }
+});
+document.getElementById('admin-panel').addEventListener('click',function(e){if(e.target===this)closeAdminPanel();});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeAdminPanel();});
+</script>
+</body>
+</html>
