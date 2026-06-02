@@ -7,4 +7,5 @@ for c in range(1, 7):
         soma += num   
         cont += 1     
 
+
 print(f"Você informou {cont} números pares e a soma dos números pares é {soma}.")
