@@ -1,10 +1,15 @@
-n = c = s = 0 
+n = c = 0 
+q = 0
+multip = 1
+flag = 757
 while True:
     n = int(input('Digite um número (757 para parar): '))
-    c += 1 
-    s += n
-    if n == 757:  
+    
+    if n == 757:
+        multip *= n
+        q += 1
         break
-    multip = c*s 
-print(f'A quantidade de numeros de digitados foram {c} e a multiplicação dos numeros foi {multip}, já multiplicando o flag deu {c * s} !')
-
+    multip *= n
+    q += 1
+print(f'A quantidade de numeros digitados foram {q}')
+print(f'A multiplicação de todos incluindo o flag deu {multip}')
